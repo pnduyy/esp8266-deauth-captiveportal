@@ -10,7 +10,6 @@ https://github.com/SpacehuhnTech/esp8266_deauther
 - Wifi mặc định của esp8266_deauther_pnd là "__hihi__", pass="09876543", IP="192.168.4.1"
 
 # esp8266-captive-portal-pnd:
-  + "172.0.0.1/index"
   + "172.0.0.1/mk" để xem mật khẩu đã lưu.
   + "172.0.0.1/wifi" để đổi tên wifi.
  - Sau khi nhập mk wifi, esp8266-captive-portal-pnd sẽ reset lại tên wifi về mặc định và gửi 1 tín hiệu đến chân RST của esp8266_deauther_pnd để STOP deauth.
