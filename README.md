@@ -13,5 +13,5 @@ https://github.com/SpacehuhnTech/esp8266_deauther
   + "172.0.0.1/index"
   + "172.0.0.1/mk" để xem mật khẩu đã lưu.
   + "172.0.0.1/wifi" để đổi tên wifi.
-  Sau khi nhập mk wifi, esp8266-captive-portal-pnd sẽ reset lại tên wifi về mặc định và gửi 1 tín hiệu đến chân RST của esp8266_deauther_pnd để STOP deauth.
+  -> Sau khi nhập mk wifi, esp8266-captive-portal-pnd sẽ reset lại tên wifi về mặc định và gửi 1 tín hiệu đến chân RST của esp8266_deauther_pnd để STOP deauth.
 
